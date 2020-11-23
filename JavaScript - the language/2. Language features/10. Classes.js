@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// TODO: chainable function
+
 class Animal {
 
   constructor() {

@@ -37,3 +37,6 @@ console.log(array.some(v => v == 5));
 console.log(array.some(v => v == 6));
 console.log(array.every(v => v < 6));
 console.log(array.every(v => v < 4));
+
+
+// Object.freeze
