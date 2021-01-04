@@ -30,6 +30,3 @@ console.log(a, b);
 let [a, b] = [4, 5];
 
 let { henk, piet } = { henk: 10, piet: 18 }
-
-henk
-piet
