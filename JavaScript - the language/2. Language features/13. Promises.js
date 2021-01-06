@@ -7,7 +7,7 @@ fetch('http://paaldb.timendus.com/api/locations/34aa966d-e4ca-432c-bc78-489d3eae
     if ( result.ok )
       return result.json();
     else
-      throw `Server said '${result.statusText}'`;
+      return Promise.reject(`Server said '${result.statusText}'`);
   })
   .then(json => console.log(json))
   .catch(error => console.log("We have a booboo! " + error))
