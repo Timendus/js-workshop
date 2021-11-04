@@ -12,8 +12,11 @@ window.*
 navigator.*
 document.*
 
-// Some of those APIs are available in the global scope too:
+// Some of those APIs are available in the global scope too, because:
 
+this === window // true
+
+// So
 setInterval() // is really
 window.setInterval()
 
