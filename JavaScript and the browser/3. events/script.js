@@ -10,5 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.innerHTML += '<p>Hello from <code>document.DOMContentLoaded</code> event listener</p>';
 });
 
+// You can also create your own custom events
+document.addEventListener('custom-shite', e => {
+  console.log('Got custom shite!', e);
+});
+
+const event = new Event('custom-shite');
+document.dispatchEvent(event);
+
 // This gives an error, because the DOM hasn't finished loading yet:
 document.body.innerHTML += '<p>Hello from script.js</p>';
