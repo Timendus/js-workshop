@@ -38,11 +38,18 @@ const socket = io("http://localhost:3000");
 
 ## API
 
+Nearly all events require you to explicitly state for which game (and optionally
+which room) the event should fire. This is done so you can be flexible in how
+you use the server. For example: clients can send messages on other rooms, or be
+in multiple rooms at the same time.
+
 ### `join`
 
 Players can join a room on your game. If your game has only a single room, just
 use the same room name or leave out the room. Joining a room makes it so that
-client will receive any messages sent in that room.
+this client will receive any messages sent in that room.
+
+Games and rooms are created automatically when the first client joins.
 
 ```javascript
 socket.emit('join', {
