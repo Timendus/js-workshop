@@ -13,6 +13,29 @@ only supply a web client.
 
 Blahblah
 
+## Use hosted version
+
+Available at...
+
+```javascript
+const socket = io("http://localhost:3000");
+```
+
+## To run locally
+
+```bash
+git clone git@github.com:Timendus/js-workshop.git
+cd js-workshop/JavaScript\ and\ the\ browser/BrowserJam/
+npm install
+npm start
+```
+
+Then in your web application:
+
+```javascript
+const socket = io("http://localhost:3000");
+```
+
 ## API
 
 ### `join`
