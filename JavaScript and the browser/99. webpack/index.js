@@ -1,3 +1,3 @@
-setInterval(() => {
-  console.log('Hello world');
-}, 1000);
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.innerHTML += '<p>Hello World from JavaScript!</p>';
+});
