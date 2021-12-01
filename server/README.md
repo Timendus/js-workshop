@@ -13,19 +13,24 @@ only supply a web client.
 
 Blahblah
 
-## Use hosted version
+## Instantiating
 
-Available at...
+### Using the hosted version
+
+This server is being hosted on Heroku for your convenience. To use the hosted
+server, instantiate `socket` like so:
 
 ```javascript
-const socket = io("http://localhost:3000");
+const socket = io("https://browserjam-event-server.herokuapp.com");
 ```
 
-## To run locally
+### Using a local server
+
+Or you can run a local version of the server:
 
 ```bash
 git clone git@github.com:Timendus/js-workshop.git
-cd js-workshop/JavaScript\ and\ the\ browser/BrowserJam/
+cd js-workshop
 npm install
 npm start
 ```
