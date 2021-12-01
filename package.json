@@ -1,8 +1,9 @@
 {
   "name": "BrowserJam Event Server",
   "scripts": {
-    "start": "node ./server.js",
-    "dev": "nodemon ./server.js"
+    "start": "node ./server/index.js",
+    "web": "node ./server/index.js",
+    "dev": "nodemon ./server/index.js"
   },
   "dependencies": {
     "express": "^4.17.1",
@@ -10,5 +11,8 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
