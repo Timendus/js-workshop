@@ -7,18 +7,29 @@
     <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
     <script src="./script.js" charset="utf-8"></script>
     <style media="screen">
-      section {
-        border: 2px solid blue;
+      html, body, #game {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        background-color: #EEEEDD;
+      }
+
+      .puppet {
+        position: absolute;
+        width: 64px;
+        height: 64px;
+        background-image: url('./sprites.png');
+        background-size: 1024px;
+        background-repeat: no-repeat;
+        background-position: -60px -60px;
       }
     </style>
   </head>
 
   <body>
-    <h1>Hello World</h1>
-    <section>
-      <p>This button has been clicked <span id="counter">0</span> times</p>
-      <button>click me</button>
-    </section>
+    <div id="game"></div>
   </body>
 
 </html>
