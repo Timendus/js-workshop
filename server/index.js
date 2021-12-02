@@ -83,6 +83,10 @@ io.on('connection', socket => {
     socket.emit('list', Object.keys(games[game])));
 
   socket.on('join', ({game, room, player}) => {
+    // Make sure player isn't in another room
+    leave(socket);
+
+    // Sanitize input
     game ||= 'server';
     room ||= 'lobby';
     player ||= {};
@@ -102,10 +106,9 @@ io.on('connection', socket => {
 
     // Send the new client the current room state
     socket.emit('state', games[game][room].state);
-
     // Send the new client the existing clients
-    games[game][room].players.forEach(p =>
-      socket.emit('join', { ...playerWithoutSocket(p), isMe: p.id == player.id }));
+    games[game][room].players.map(p => playerWithoutSocket(p))
+                             .forEach(player => socket.emit('join', player));
   });
 
   socket.on('leave', () => leave(socket));
@@ -123,8 +126,7 @@ io.on('connection', socket => {
       ( p.id == player.id ) ? player : p);
 
     // Update player on the clients
-    socket.to(`${game}--${room}`).emit('update', player);
-    socket.emit('update', { ...player, isMe: true });
+    io.to(`${game}--${room}`).emit('update', player);
   });
 
   socket.on('message', ({message, echo}) => {
@@ -140,8 +142,8 @@ io.on('connection', socket => {
                         });
   });
 
-  socket.on('broadcast', ({game, message}) =>
-    io.to(game).emit('broadcast', {message}));
+  socket.on('broadcast', ({game, message, echo}) =>
+    (echo ? io : socket).to(game).emit('broadcast', message));
 
   socket.on('state', ({state, echo}) => {
     const { game, room } = players[socket.id] || {};

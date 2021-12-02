@@ -66,7 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function moveMe() {
     if ( !(keys[37] || keys[39] || keys[38] || keys[40]) ) return;
-    const myPuppet = Object.values(puppets).find(p => p.isMe);
+    const myPuppet = Object.values(puppets).find(p => p.id == socket.id);
+    if ( !myPuppet ) return;
     myPuppet.x += keys[37] ? -2 : 0 + keys[39] ? 2 : 0;
     myPuppet.y += keys[38] ? -2 : 0 + keys[40] ? 2 : 0;
     socket.emit('update', myPuppet);
