@@ -72,8 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
     myPuppet.y += keys[38] ? -2 : 0 + keys[40] ? 2 : 0;
     socket.emit('update', myPuppet);
 
-    if ( Math.abs(myPuppet.x - apple.x) < 15 &&
-         Math.abs(myPuppet.y - apple.y) < 15 ) spawnApple();
+    if ( Math.abs(myPuppet.x - apple.x) < 40 &&
+         Math.abs(myPuppet.y - apple.y) < 40 ) spawnApple();
   }
 
   function spawnApple() {
