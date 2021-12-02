@@ -1,4 +1,4 @@
-const socket = io("http://localhost:3000");
+const socket = io("https://browserjam-event-server.herokuapp.com");
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   socket.on('state', ({player, state}) => {
-    // If not state present on the server, initialise it
+    // If no state present on the server, initialise it
     if ( state == null ) {
       spawnApple();
       return;
