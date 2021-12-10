@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const choice = choices.find(c => c.name == e.target.id);
     if ( !choice ) return;
     userChoice.innerHTML = `You choose <span>${choice.name.toUpperCase()}</span>`;
-    compChoice.innerHTML = '';
-    result.innerHTML = '';
+    // compChoice.innerHTML = '';
+    // result.innerHTML = '';
 
     // What choice does the computer make?
     const computer = choices[Math.floor(Math.random() * choices.length)];
