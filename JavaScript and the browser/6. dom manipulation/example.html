@@ -4,20 +4,28 @@
   <head>
     <meta charset="utf-8">
     <title>JavaScript in the browser</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css">
     <script src="./script.js" charset="utf-8"></script>
-    <style media="screen">
-      section {
-        border: 2px solid blue;
-      }
-    </style>
   </head>
 
   <body>
-    <h1>Hello World</h1>
-    <section>
-      <p>This button has been clicked <span id="counter">0</span> times</p>
-      <button>click me</button>
-    </section>
+    <main>
+        <div class="scores">
+            <p>Computer :
+                <span id="computer_score">0</span>
+            </p>
+            <p>
+                You :
+                <span id="user_score">0</span>
+            </p>
+        </div>
+        <section></section>
+        <div class="details">
+            <p id="user_choice"></p>
+            <p id="comp_choice"></p>
+            <p id="result"></p>
+        </div>
+    </div>
   </body>
 
 </html>
