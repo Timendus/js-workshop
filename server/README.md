@@ -191,7 +191,7 @@ socket.emit('list', 'MyGame');
 To send an arbitrary message to the room you're currently in, emit a `message`
 event. All clients currently in the same room will receive a `message` event. By
 default the message does not trigger an event on the sending client, but you can
-enable that if required.
+enable that if required with the `echo` attribute as shown below.
 
 ```javascript
 socket.on('message', ({player, message}) => {
