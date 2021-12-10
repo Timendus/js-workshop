@@ -1,4 +1,4 @@
-const socket = io("https://browserjam-event-server.herokuapp.com");
+const socket = io("http://localhost:3000/puppets-demo");
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -136,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // And start!
 
   socket.emit('join', {
-    game: 'Puppets',
     player: {
       x: random(-400, 400),
       y: random(-400, 400),
