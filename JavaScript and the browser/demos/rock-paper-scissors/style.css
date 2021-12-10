@@ -13,7 +13,7 @@ body{
         #ff8b1b
     );
 }
-.container{
+main {
     width: 45%;
     min-width: 500px;
     background-color: #ffffff;
@@ -29,13 +29,13 @@ body{
     margin-bottom: 50px;
     text-align: right;
 }
-.weapons{
+section {
     width: 90%;
     margin: auto;
     display: flex;
     justify-content: space-around;
 }
-.weapons button{
+section button{
     background-color: #ffd51b;
     color: #000000;
     border: none;
@@ -46,11 +46,11 @@ body{
     outline: none;
     cursor: pointer;
 }
-.details{
+.details, #waiting-message{
     margin-top: 30px;
     text-align: center;
 }
-.scores,.details{
+.scores,.details, #waiting-message{
     font-family: 'Poppins',sans-serif;
     font-weight: 400;
     font-size: 15px;
@@ -61,6 +61,18 @@ body{
     margin: 30px auto;
     font-weight: 600;
     letter-spacing: 0.5px;
+}
+#result.win {
+  background-color: #cefdce;
+  color: #689f38;
+}
+#result.lose {
+  background-color: #ffdde0;
+  color: #d32f2f;
+}
+#result.tie {
+  background-color: #e5e5e5;
+  color: #808080;
 }
 #user_choice,
 #computer_choice{
