@@ -61,8 +61,7 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
 
   log(`Client entered game ${socket.nsp.name} with socket ID ${socket.id}`);
 
-  socket.on('list', game =>
-    socket.emit('list', Object.keys(games[game])));
+  socket.on('list', callback => callback(Object.keys(socket.nsp.roomStates)));
 
   socket.on('join', ({room, player}) => {
     // Make sure player isn't in another room
