@@ -29,22 +29,32 @@ const io = require('socket.io')(server, {
   serveClient: false
 });
 
-function log(...msg) {
+function log(socket, ...msg) {
   if (!config.verbose) return;
-  console.log(...msg);
+  if ( socket ) {
+    let room = [...socket.rooms].find(r => r != socket.id);
+    if ( room )
+      room = ` --> ${room}`;
+    else
+      room = '';
+    console.log(`${socket.nsp.name}${room} |`, ...msg, `(${socket.id})`);
+  } else {
+    console.log(...msg);
+  }
 }
 
 function leave(socket) {
   const player = { id: socket.id };
   const room = [...socket.rooms].find(r => r != socket.id);
-  log(`Client ${socket.id} left room ${room}`);
+  if ( !room ) return;
+  log(socket, `Client left room`);
   socket.to(room).emit('leave', player);
   socket.leave(room);
 
   // If room is gone, delete room state
   if ( socket.nsp.adapter.rooms.get(room) == undefined && socket.nsp.roomStates && socket.nsp.roomStates[room] ) {
     delete socket.nsp.roomStates[room];
-    log(`Cleaned up room ${room}`);
+    log(socket, `Cleaned up room ${room}`);
   }
 }
 
@@ -59,7 +69,7 @@ function myRoom(socket) {
 // Allow any namespace that contains letters, numbers, dash and underscore
 io.of(/^\/[\w\-]+$/).on('connection', socket => {
 
-  log(`Client entered game ${socket.nsp.name} with socket ID ${socket.id}`);
+  log(socket, `New client entered game`);
 
   socket.on('list', callback => callback(Object.keys(socket.nsp.roomStates)));
 
@@ -71,7 +81,6 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
     room ||= 'lobby';
     player ||= {};
     player.id = socket.id;
-    log(`Client ${socket.id} joined room ${room}`);
 
     // Make sure client receives messages for this room:
     socket.join(room);
@@ -79,9 +88,9 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
     // Store player and room state
     socket.player = player;
     socket.nsp.roomStates ??= {};
-    socket.nsp.roomStates[room] ??= {
-      player, state: null
-    };
+    socket.nsp.roomStates[room] ??= { player, state: null };
+
+    log(socket, `Client entered room`);
 
     // Send the new player to the existing clients
     socket.to(room).emit('join', player);
@@ -95,7 +104,7 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
 
   socket.on('leave', () => leave(socket));
   socket.on('disconnecting', () => leave(socket));
-  socket.on('disconnect', () => log(`Client ${socket.id} disconnected`));
+  socket.on('disconnect', () => log(socket, `Client disconnected`));
 
   socket.on('update', player => {
     player.id = socket.id;
