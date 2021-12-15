@@ -316,5 +316,3 @@ works for `state`, `message` and `broadcast`.
 ```javascript
 socket.emit('message', 'Stop echoing back!', false);
 ```
-
-
