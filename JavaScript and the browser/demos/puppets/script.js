@@ -1,6 +1,6 @@
-const socket = io("https://browserjam-event-server.herokuapp.com/puppets-demo");
-
 document.addEventListener('DOMContentLoaded', () => {
+
+  const socket = io("https://browserjam-event-server.herokuapp.com/puppets-demo");
 
   // Set up game data
 
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
   socket.on('update', puppet => puppets[puppet.id] = puppet);
   socket.on('leave', puppet => {
     document.getElementById('puppet-'+puppet.id).remove();
-    delete puppets[puppet.id]
+    delete puppets[puppet.id];
   });
 
   socket.on('state', (state, player) => {
@@ -105,6 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const elm = document.getElementById('apple');
     elm.style.top = `${apple.y + window.innerHeight/2}px`;
     elm.style.left = `${apple.x + window.innerWidth/2}px`;
+  });
+
+  socket.on('disconnect', () => {
+    alert('Connection lost. Reloading the page...');
+    window.location.reload();
   });
 
   window.addEventListener('keydown', e => keys[e.keyCode] = true);
