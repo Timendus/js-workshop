@@ -65,8 +65,7 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
 
   socket.on('join', ({room, player}) => {
     // Make sure player isn't in another room
-    [...socket.rooms].filter(r => r != socket.id)
-                     .forEach(r => socket.leave(r));
+    leave(socket);
 
     // Sanitize input
     room ||= 'lobby';
