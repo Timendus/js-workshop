@@ -1,6 +1,6 @@
-const socket = io("https://browserjam-event-server.herokuapp.com");
-
 document.addEventListener('DOMContentLoaded', () => {
+
+  const socket = io("https://browserjam-event-server.herokuapp.com/rock-paper-scissors");
 
   const section = document.querySelector('section');
   const userChoice = document.querySelector('#user_choice');
