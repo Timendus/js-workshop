@@ -19,7 +19,7 @@ app.get('/status', (req, res) => {
     for ( const room in namespaces[game].roomStates ) {
       const numClients = namespaces[game].adapter.rooms.get(room)?.size;
       if ( numClients === undefined ) continue;
-      status += `    - ${room} (${numClients})`;
+      status += `    - ${room} (${numClients})\n`;
     }
   }
   res.send(status);
