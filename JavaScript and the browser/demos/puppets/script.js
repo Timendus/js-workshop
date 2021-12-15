@@ -1,4 +1,4 @@
-const socket = io("http://localhost:3000/puppets-demo");
+const socket = io("https://browserjam-event-server.herokuapp.com/puppets-demo");
 
 document.addEventListener('DOMContentLoaded', () => {
 
