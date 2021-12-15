@@ -73,13 +73,14 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
 
   socket.on('list', callback => callback(Object.keys(socket.nsp.roomStates)));
 
-  socket.on('join', ({room, player}) => {
+  socket.on('join', joinEvent => {
     // Make sure player isn't in another room
     leave(socket);
 
     // Sanitize input
-    room ||= 'lobby';
-    player ||= {};
+    joinEvent ||= {}
+    const room = joinEvent.room || 'lobby';
+    const player = joinEvent.player || {};
     player.id = socket.id;
 
     // Make sure client receives messages for this room:
@@ -90,13 +91,16 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
     socket.nsp.roomStates ??= {};
     socket.nsp.roomStates[room] ??= { player, state: null };
 
+    // Done with bookkeeping!
     log(socket, `Client entered room`);
 
     // Send the new player to the existing clients
     socket.to(room).emit('join', player);
 
     // Send the current room state to the new client
-    socket.emit('state', socket.nsp.roomStates[room]);
+    const state = socket.nsp.roomStates[room];
+    socket.emit('state', state.state, state.player);
+
     // Send the existing clients to the new client
     socket.nsp.adapter.rooms.get(room).forEach(id =>
       socket.emit('join', socket.nsp.sockets.get(id).player));
@@ -112,21 +116,16 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
     target(socket, true).emit('update', player);
   });
 
-  socket.on('message', ({message, echo}) => {
-    target(socket, echo).emit('message', {
-      player: socket.player,
-      message
-    });
-  });
+  socket.on('message', (message, echo = true) =>
+    target(socket, echo).emit('message', message, socket.player));
 
-  socket.on('broadcast', ({message, echo}) =>
-    (echo ? socket.nsp : socket).emit('broadcast', message)
-  );
+  socket.on('broadcast', (message, echo = true) =>
+    (echo ? socket.nsp : socket).emit('broadcast', message));
 
-  socket.on('state', ({state, echo}) => {
+  socket.on('state', (state, echo = true) => {
     const newState = { player: socket.player, state };
     socket.nsp.roomStates[myRoom(socket)] = newState;
-    target(socket, echo).emit('state', newState);
+    target(socket, echo).emit('state', newState.state, newState.player);
   });
 
 });
