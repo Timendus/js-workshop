@@ -11,3 +11,8 @@ can use them for your own workshops too.
 Work in progress 😉
 
 * [Slides](https://docs.google.com/presentation/d/1RxYUsCfFCf29Q21tlpxWnxyGpPOBjkkXAlFXE4t6Elg/edit?usp=sharing)
+* Event server
+  * [Documentation](./server#readme)
+  * Demos:
+    * [Puppets](https://timendus.github.io/js-workshop/JavaScript%20and%20the%20browser/demos/puppets/example.html)
+    * [Rock, Paper, Scissors](https://timendus.github.io/js-workshop/JavaScript%20and%20the%20browser/demos/rock-paper-scissors/example.html)
