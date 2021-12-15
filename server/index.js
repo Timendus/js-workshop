@@ -3,6 +3,7 @@
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
+const namespaces = {};
 
 const config = {
   "port": process.env['PORT'] || 3000,
@@ -12,10 +13,13 @@ const config = {
 app.get('/status', (req, res) => {
   res.set("Content-Type", "text/plain");
   let status = 'Games:\n';
-  for ( const game in games ) {
+  for ( const game in namespaces ) {
     status += `  * ${game}\n`;
-    for ( const room in games[game] ) {
-      status += `    - ${room} (${games[game][room].players.length} players)`;
+    if ( !namespaces[game].roomStates ) continue;
+    for ( const room in namespaces[game].roomStates ) {
+      const numClients = namespaces[game].adapter.rooms.get(room)?.size;
+      if ( numClients === undefined ) continue;
+      status += `    - ${room} (${numClients})`;
     }
   }
   res.send(status);
@@ -108,7 +112,6 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
 
   socket.on('leave', () => leave(socket));
   socket.on('disconnecting', () => leave(socket));
-  socket.on('disconnect', () => log(socket, `Client disconnected`));
 
   socket.on('update', player => {
     player.id = socket.id;
@@ -126,6 +129,21 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
     const newState = { player: socket.player, state };
     socket.nsp.roomStates[myRoom(socket)] = newState;
     target(socket, echo).emit('state', newState.state, newState.player);
+  });
+
+  // Keep a reference to the namespaces currently in use so the `/status` API
+  // can actually show something interesting
+
+  namespaces[socket.nsp.name] ??= socket.nsp;
+
+  socket.on('disconnect', () => {
+    log(socket, `Client disconnected`);
+
+    // If namespace is empty, delete namespace
+    if ( socket.nsp.sockets.size == 0 ) {
+      delete namespaces[socket.nsp.name];
+      console.log(`Cleaned up game ${socket.nsp.name}`);
+    }
   });
 
 });
