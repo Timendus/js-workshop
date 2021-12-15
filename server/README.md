@@ -10,7 +10,7 @@ it for you too, while we're at it. So if this server suffices for your game
 idea, you only need to supply a client application!
 
 And if not, feel free to adapt the server to meet your own needs. It's written
-in Javascript (obviously) and it's just 134 lines of code. Much less than this
+in Javascript (obviously) and it's just 152 lines of code. Much less than this
 README, in fact 😉
 
 Please note though that this being an open, shared server, there is **absolutely
@@ -284,6 +284,23 @@ socket.on('leave', player => {
   if ( player.id == socket.id ) {
     // This player is me!
   }
+});
+```
+
+#### `disconnect`
+
+When your client loses its connection to the server, a `disconnect` event will
+fire. When your client reconnects, having missed a couple of events, their state
+may diverge from the rest of the clients and they may have gotten a new
+`player.id`. This is an issue, so it is recommended to listen to this
+`disconnect` event and handle it in a way that brings the client back in sync
+with the global state. One fairly ugly but simple and effective way to handle
+this would be something like this:
+
+```javascript
+socket.on('disconnect', () => {
+  alert('Connection lost. Reloading the page...');
+  window.location.reload();
 });
 ```
 
