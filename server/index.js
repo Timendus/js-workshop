@@ -4,9 +4,6 @@ const express = require('express');
 const app = express();
 const server = require('http').Server(app);
 
-const games = {};
-const players = {};
-
 const config = {
   "port": process.env['PORT'] || 3000,
   "verbose": true
@@ -32,127 +29,103 @@ const io = require('socket.io')(server, {
   serveClient: false
 });
 
-function log(...msg) {
+function log(socket, ...msg) {
   if (!config.verbose) return;
-  console.log(...msg);
-}
-
-function addPlayer(game, room, player) {
-  games[game] ||= {};
-  games[game][room] ||= {};
-  games[game][room].state ??= {
-    player: playerWithoutSocket(player),
-    state: null
-  };
-  games[game][room].players ||= [];
-  games[game][room].players.push(player);
-  players[player.id] = { game, room };
-}
-
-function removePlayer(game, room, player) {
-  delete players[player.id];
-  games[game][room].players = games[game][room].players.filter(p => p.id != player.id);
-  if ( games[game][room].players.length == 0 ) {
-    delete games[game][room];
-    if ( Object.keys(games[game]).length == 0 )
-      delete games[game];
+  if ( socket ) {
+    let room = [...socket.rooms].find(r => r != socket.id);
+    if ( room )
+      room = ` --> ${room}`;
+    else
+      room = '';
+    console.log(`${socket.nsp.name}${room} |`, ...msg, `(${socket.id})`);
+  } else {
+    console.log(...msg);
   }
 }
 
 function leave(socket) {
   const player = { id: socket.id };
-  const { game, room } = players[player.id] || {};
-  if ( !game || !room ) return;
-  log(`Client ${socket.id} left game ${game} and room ${room}`);
-  socket.leave(game);
-  socket.leave(`${game}--${room}`);
-  removePlayer(game, room, player);
-  io.to(`${game}--${room}`).emit('leave', player);
+  const room = [...socket.rooms].find(r => r != socket.id);
+  if ( !room ) return;
+  log(socket, `Client left room`);
+  socket.to(room).emit('leave', player);
+  socket.leave(room);
+
+  // If room is gone, delete room state
+  if ( socket.nsp.adapter.rooms.get(room) == undefined && socket.nsp.roomStates && socket.nsp.roomStates[room] ) {
+    delete socket.nsp.roomStates[room];
+    log(socket, `Cleaned up room ${room}`);
+  }
 }
 
-function playerWithoutSocket(player) {
-  const { socket, ...newPlayer } = player;
-  return newPlayer;
+function target(socket, echo) {
+  return (echo ? socket.nsp : socket).to(myRoom(socket));
 }
 
-io.on('connection', socket => {
+function myRoom(socket) {
+  return [...socket.rooms].find(r => r != socket.id);
+}
 
-  log("Client connected on socket", socket.id);
+// Allow any namespace that contains letters, numbers, dash and underscore
+io.of(/^\/[\w\-]+$/).on('connection', socket => {
 
-  socket.on('list', game =>
-    socket.emit('list', Object.keys(games[game])));
+  log(socket, `New client entered game`);
 
-  socket.on('join', ({game, room, player}) => {
+  socket.on('list', callback => callback(Object.keys(socket.nsp.roomStates)));
+
+  socket.on('join', joinEvent => {
     // Make sure player isn't in another room
     leave(socket);
 
     // Sanitize input
-    game ||= 'server';
-    room ||= 'lobby';
-    player ||= {};
-    log(`Client ${socket.id} joined game ${game} and room ${room}`);
-
-    // Make sure client receives messages for these channels:
-    socket.join(game);
-    socket.join(`${game}--${room}`);
-
-    // Store the game/room/player on the server
+    joinEvent ||= {}
+    const room = joinEvent.room || 'lobby';
+    const player = joinEvent.player || {};
     player.id = socket.id;
-    player.socket = socket;
-    addPlayer(game, room, player);
 
-    // Send the existing clients the new player
-    socket.to(`${game}--${room}`).emit('join', playerWithoutSocket(player));
+    // Make sure client receives messages for this room:
+    socket.join(room);
 
-    // Send the new client the current room state
-    socket.emit('state', games[game][room].state);
-    // Send the new client the existing clients
-    games[game][room].players.map(p => playerWithoutSocket(p))
-                             .forEach(player => socket.emit('join', player));
+    // Store player and room state
+    socket.player = player;
+    socket.nsp.roomStates ??= {};
+    socket.nsp.roomStates[room] ??= { player, state: null };
+
+    // Done with bookkeeping!
+    log(socket, `Client entered room`);
+
+    // Send the new player to the existing clients
+    socket.to(room).emit('join', player);
+
+    // Send the current room state to the new client
+    const state = socket.nsp.roomStates[room];
+    socket.emit('state', state.state, state.player);
+
+    // Send the existing clients to the new client
+    socket.nsp.adapter.rooms.get(room).forEach(id =>
+      socket.emit('join', socket.nsp.sockets.get(id).player));
   });
 
   socket.on('leave', () => leave(socket));
   socket.on('disconnecting', () => leave(socket));
-  socket.on('disconnect', () => log(`Client ${socket.id} disconnected`));
+  socket.on('disconnect', () => log(socket, `Client disconnected`));
 
   socket.on('update', player => {
-    // Where am I?
     player.id = socket.id;
-    const { game, room } = players[player.id] || {};
-    if ( !game || !room ) return;
-
-    // Update player on the server
-    games[game][room].players = games[game][room].players.map(p =>
-      ( p.id == player.id ) ? player : p);
-
-    // Update player on the clients
-    io.to(`${game}--${room}`).emit('update', player);
+    socket.player = player;
+    target(socket, true).emit('update', player);
   });
 
-  socket.on('message', ({message, echo}) => {
-    if ( !message ) return;
-    const { game, room } = players[socket.id] || {};
-    if ( !game || !room ) return;
-    const player = games[game][room].players.find(p => p.id == socket.id);
-    if ( !player ) return;
-    (echo ? io : socket).to(`${game}--${room}`)
-                        .emit('message', {
-                          player: playerWithoutSocket(player),
-                          message
-                        });
-  });
+  socket.on('message', (message, echo = true) =>
+    target(socket, echo).emit('message', message, socket.player));
 
-  socket.on('broadcast', ({game, message, echo}) =>
-    (echo ? io : socket).to(game).emit('broadcast', message));
+  socket.on('broadcast', (message, echo = true) =>
+    (echo ? socket.nsp : socket).emit('broadcast', message));
 
-  socket.on('state', ({state, echo}) => {
-    const { game, room } = players[socket.id] || {};
-    if ( !game || !room ) return;
-    const player = games[game][room].players.find(p => p.id == socket.id);
-    if ( !player ) return;
-    games[game][room].state = { state, player: playerWithoutSocket(player) };
-    (echo ? io : socket).to(`${game}--${room}`)
-                        .emit('state', games[game][room].state);
+  socket.on('state', (state, echo = true) => {
+    const newState = { player: socket.player, state };
+    socket.nsp.roomStates[myRoom(socket)] = newState;
+    target(socket, echo).emit('state', newState.state, newState.player);
   });
 
 });

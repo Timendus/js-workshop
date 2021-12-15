@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("user_score").innerHTML = scores.human;
   }
 
-  socket.on('message', ({player, message}) => {
+  socket.on('message', (message, player) => {
     if (Object.entries(myChoice).length !== 0) {
       checkChoice(myChoice, message.chosen)
     } else {
@@ -57,13 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   socket.emit('join', {
-      game: 'Rock Paper Scissors',
       room: roomID,
       player: {
           name: "Jannie",
           score: 0
       }
-  })
+  });
 
   const scores = {
     human: 0,
@@ -108,19 +107,15 @@ document.addEventListener('DOMContentLoaded', () => {
     result.classList = [];
     myChoice = choice;
     if (Object.entries(otherChoice).length !== 0) {
-      checkChoice(myChoice, otherChoice)
+      checkChoice(myChoice, otherChoice);
       socket.emit('message', {
-        message: {
-          chosen: choice,
-        },
-      });
+        chosen: choice,
+      }, false);
     } else {
       waiting.innerHTML = "You are the first, let's wait for the other"
       socket.emit('message', {
-        message: {
-          chosen: choice,
-        },
-      });
+        chosen: choice,
+      }, false);
     }
   });
 

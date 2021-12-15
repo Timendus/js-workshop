@@ -1,4 +1,4 @@
-const socket = io("https://browserjam-event-server.herokuapp.com");
+const socket = io("https://browserjam-event-server.herokuapp.com/puppets-demo");
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -78,11 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function spawnApple() {
     socket.emit('state', {
-      state: {
-        x: random(-400, 400),
-        y: random(-400, 400)
-      },
-      echo: true
+      x: random(-400, 400),
+      y: random(-400, 400)
     });
   }
 
@@ -95,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     delete puppets[puppet.id]
   });
 
-  socket.on('state', ({player, state}) => {
+  socket.on('state', (state, player) => {
     // If no state present on the server, initialise it
     if ( state == null ) {
       spawnApple();
@@ -115,14 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelector('#chat form').addEventListener('submit', e => {
     e.preventDefault();
-    socket.emit('message', {
-      message: document.querySelector('#chat input').value,
-      echo: true
-    });
+    socket.emit('message', document.querySelector('#chat input').value);
     hideChat();
   });
 
-  socket.on('message', ({player, message}) => {
+  socket.on('message', (message, player) => {
     window.clearTimeout(chatTimeouts[player.id]);
     const popup = document.querySelector(`#puppet-${player.id} .message`);
     popup.innerText = message;
@@ -136,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // And start!
 
   socket.emit('join', {
-    game: 'Puppets',
     player: {
       x: random(-400, 400),
       y: random(-400, 400),
