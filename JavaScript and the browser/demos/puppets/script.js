@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
       elm.style.left = `${puppet.x + window.innerWidth/2}px`;
       const sprite = selectPuppetSprite(puppet.sprite);
       elm.style.backgroundPosition = `-${sprite.x}px -${sprite.y}px`;
-    };
+    }
   }
 
   function selectPuppetSprite(id) {
@@ -83,6 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function placeApple() {
+    const elm = document.getElementById('apple');
+    elm.style.top = `${apple.y + window.innerHeight/2}px`;
+    elm.style.left = `${apple.x + window.innerWidth/2}px`;
+  }
+
   // Set up event listeners
 
   socket.on('join', puppet => puppets[puppet.id] = puppet);
@@ -101,10 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     apple.x = state.x;
     apple.y = state.y;
-
-    const elm = document.getElementById('apple');
-    elm.style.top = `${apple.y + window.innerHeight/2}px`;
-    elm.style.left = `${apple.x + window.innerWidth/2}px`;
+    placeApple();
   });
 
   socket.on('disconnect', () => {
@@ -114,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('keydown', e => keys[e.keyCode] = true);
   window.addEventListener('keyup', e => keys[e.keyCode] = false);
+  window.addEventListener('resize', () => placeApple());
 
   document.querySelector('#chat form').addEventListener('submit', e => {
     e.preventDefault();
