@@ -10,7 +10,7 @@ it for you too, while we're at it. So if this server suffices for your game
 idea, you only need to supply a client application!
 
 And if not, feel free to adapt the server to meet your own needs. It's written
-in Javascript (obviously) and it's just 152 lines of code. Much less than this
+in Javascript (obviously) and it's just 160 lines of code. Much less than this
 README, in fact 😉
 
 Please note though that this being an open, shared server, there is **absolutely
@@ -327,9 +327,43 @@ socket.on('state', (state, player) => {
 
 By default, anything you do will also trigger an event on the sending client.
 For some situations this may not be desired. You can disable this behaviour on a
-per-call basis by supplying `false` as a third argument to `emit`. This only
-works for `state`, `message` and `broadcast`.
+per-call basis by supplying an options object as a third argument to `emit`,
+where the value of `echo` is `false`:
 
 ```javascript
-socket.emit('message', 'Stop echoing back!', false);
+socket.emit('message', 'Stop echoing back!', {
+  echo: false
+});
 ```
+
+This only works for `update`, `state`, `message` and `broadcast` events.
+
+### Volatile events
+
+Socket.io supports a concept known as [volatile
+events](https://socket.io/docs/v4/emitting-events/#volatile-events). This makes
+events work more like UDP, in the sense that events may be safely discarded in
+case the connection is not available or congested. This can be useful for things
+like player positions, that you send pretty much every frame anyway.
+
+```javascript
+socket.volatile.emit('update', {
+  x: player.x,
+  y: player.y
+});
+```
+
+You can request the server to handle your events as volatile too (from server to
+client) on a per-call basis by supplying an options object as a third argument
+to `emit`, where the value of `volatile` is `true`:
+
+```javascript
+socket.volatile.emit('update', {
+  x: player.x,
+  y: player.y
+}, {
+  volatile: true
+});
+```
+
+This only works for `update`, `state`, `message` and `broadcast`.

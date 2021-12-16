@@ -62,8 +62,16 @@ function leave(socket) {
   }
 }
 
-function target(socket, echo) {
-  return (echo ? socket.nsp : socket).to(myRoom(socket));
+function target(socket, options, toRoom = true) {
+  options = {
+    echo:     true,     // <-- Default values
+    volatile: false,
+    ...options
+  };
+
+  let target = options.echo ? socket.nsp : socket;
+  target = options.volatile ? target.volatile : target;
+  return toRoom ? target.to(myRoom(socket)) : target;
 }
 
 function myRoom(socket) {
@@ -113,22 +121,22 @@ io.of(/^\/[\w\-]+$/).on('connection', socket => {
   socket.on('leave', () => leave(socket));
   socket.on('disconnecting', () => leave(socket));
 
-  socket.on('update', player => {
+  socket.on('update', (player, options) => {
     player.id = socket.id;
     socket.player = player;
-    target(socket, true).emit('update', player);
+    target(socket, options).emit('update', player);
   });
 
-  socket.on('message', (message, echo = true) =>
-    target(socket, echo).emit('message', message, socket.player));
+  socket.on('message', (message, options) =>
+    target(socket, options).emit('message', message, socket.player));
 
-  socket.on('broadcast', (message, echo = true) =>
-    (echo ? socket.nsp : socket).emit('broadcast', message));
+  socket.on('broadcast', (message, options) =>
+    target(socket, options, false).emit('broadcast', message));
 
-  socket.on('state', (state, echo = true) => {
+  socket.on('state', (state, options) => {
     const newState = { player: socket.player, state };
     socket.nsp.roomStates[myRoom(socket)] = newState;
-    target(socket, echo).emit('state', newState.state, newState.player);
+    target(socket, options).emit('state', newState.state, newState.player);
   });
 
   // Keep a reference to the namespaces currently in use so the `/status` API

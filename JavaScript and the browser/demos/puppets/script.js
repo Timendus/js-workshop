@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if ( !myPuppet ) return;
     myPuppet.x += keys[37] ? -2 : 0 + keys[39] ? 2 : 0;
     myPuppet.y += keys[38] ? -2 : 0 + keys[40] ? 2 : 0;
-    socket.emit('update', myPuppet);
+    socket.volatile.emit('update', myPuppet, { volatile: true });
 
     if ( Math.abs(myPuppet.x - apple.x) < 40 &&
          Math.abs(myPuppet.y - apple.y) < 40 ) spawnApple();
