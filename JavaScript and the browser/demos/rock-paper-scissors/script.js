@@ -1,72 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   const socket = io("https://browserjam-event-server.herokuapp.com/rock-paper-scissors");
-
   const section = document.querySelector('section');
   const userChoice = document.querySelector('#user_choice');
   const compChoice = document.querySelector('#comp_choice');
   const result = document.querySelector('#result');
   const waiting = document.querySelector('#waiting-message');
 
-  const roomID =  window.location.hash.length > 0 ? window.location.hash : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  window.location.hash = roomID;
-  const players = {};
-  let myChoice = {}
-  let otherChoice = {}
+  // Set up game data
 
-  socket.on('join', (player) => {
-    players[player.id] = player
-  });
-  socket.on('update', player => players[player.id] = player);
-  socket.on('leave', player => {
-    delete players[player.id]
-  });
-
-  function checkChoice(mine, other) {
-    if ( mine.beats == other.name ) {
-      result.innerHTML = 'You Win!';
-      result.classList.add('win');
-      document.body.style.background = 'linear-gradient(135deg, #1ba0ff, #1bffb5)';
-      scores.human++;
-    } else if (other.beats == mine.name ) {
-      result.innerHTML = 'Computer Wins!';
-      result.classList.add('lose');
-      document.body.style.background = 'linear-gradient(135deg, #ff1b99, #ffa41b)';
-      scores.other++;
-    } else {
-      result.innerHTML = 'You tied!';
-      result.classList.add('tie');
-      document.body.style.background = 'linear-gradient(135deg, #ffcf1b, #ff8b1b)';
-    }
-
-    // Update state
-    waiting.innerHTML = '';
-    myChoice = {};
-    otherChoice = {}
-    document.getElementById("computer_score").innerHTML = scores.other;
-    document.getElementById("user_score").innerHTML = scores.human;
-  }
-
-  socket.on('message', (message, player) => {
-    if (Object.entries(myChoice).length !== 0) {
-      checkChoice(myChoice, message.chosen)
-    } else {
-      otherChoice = message.chosen;
-      waiting.innerHTML = "The other is waiting for you, hurry up now :)"
-    }
-  });
-
-  socket.emit('join', {
-      room: roomID,
-      player: {
-          name: "Jannie",
-          score: 0
-      }
-  });
-
-  const scores = {
-    human: 0,
-    other: 0
+  const state = {
+    players: {},
+    choices: {},
+    scores: {}
   };
 
   const choices = [
@@ -87,6 +33,101 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   ];
 
+  // Helper functions
+
+  function generateRoomId() {
+    return Math.random().toString(36).substring(2, 15) +
+           Math.random().toString(36).substring(2, 15);
+  }
+
+  function renderScores() {
+    document.getElementById("opponent_score").innerHTML = state.scores.opponent;
+    document.getElementById("user_score").innerHTML = state.scores.me;
+  }
+
+  function checkChoices() {
+    if ( !state.choices.me || !state.choices.opponent ) return;
+
+    if ( state.choices.me.beats == state.choices.opponent.name ) {
+      result.innerHTML = 'You Win!';
+      result.classList.add('win');
+      document.body.style.background = 'linear-gradient(135deg, #1ba0ff, #1bffb5)';
+      state.scores.me++;
+    } else if (state.choices.opponent.beats == state.choices.me.name ) {
+      result.innerHTML = 'Opponent Wins!';
+      result.classList.add('lose');
+      document.body.style.background = 'linear-gradient(135deg, #ff1b99, #ffa41b)';
+      state.scores.opponent++;
+    } else {
+      result.innerHTML = 'You tied!';
+      result.classList.add('tie');
+      document.body.style.background = 'linear-gradient(135deg, #ffcf1b, #ff8b1b)';
+    }
+
+    waiting.innerText = 'Make a choice!';
+    compChoice.innerHTML = `Opponent chose <span>${state.choices.opponent.name.toUpperCase()}</span>`;
+    state.choices = {};
+    renderScores();
+  }
+
+  function checkNumPlayers() {
+    const numPlayers = Object.keys(state.players).length;
+    if ( numPlayers == 2 ) {
+      document.querySelector('#waiting-room').classList.remove('active');
+      document.querySelector('main').classList.add('active');
+      state.scores = {
+          me: 0,
+          opponent: 0
+      };
+      renderScores();
+    } else {
+      document.querySelector('#num-players').innerText = numPlayers;
+      document.querySelector('#waiting-room').classList.add('active');
+      document.querySelector('main').classList.remove('active');
+    }
+  }
+
+  // Set up event listeners
+
+  socket.on('join', player => {
+    state.players[player.id] = player;
+    checkNumPlayers();
+  });
+
+  socket.on('leave', player => {
+    delete state.players[player.id];
+    checkNumPlayers();
+  });
+
+  socket.on('message', (message, player) => {
+    state.choices.opponent = message;
+    waiting.innerText = 'Opponent is waiting for you...';
+    checkChoices();
+  });
+
+  socket.on('disconnect', () => {
+    alert('Connection lost. Reloading the page...');
+    window.location.reload();
+  });
+
+  section.addEventListener('click', e => {
+    // Which choice did we make?
+    const choice = choices.find(c => c.name == e.target.id);
+    if ( !choice ) return;
+    waiting.innerText = 'Waiting for your opponent...';
+    userChoice.innerHTML = `You choose <span>${choice.name.toUpperCase()}</span>`;
+    compChoice.innerHTML = '';
+    result.innerHTML = '';
+    result.classList = [];
+    // Save my choice
+    state.choices.me = choice;
+    // Send my choice to the other player
+    socket.emit('message', choice, { echo: false });
+    checkChoices();
+  });
+
+  // And start!
+
   // Show the choices the user can make as buttons
   choices.forEach(choice => {
     const choiceElm = document.createElement('button');
@@ -96,27 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
     section.appendChild(choiceElm);
   });
 
-  // Handle the "game logic" when the user clicks a button
-  section.addEventListener('click', e => {
-    // Which choice did we make?
-    const choice = choices.find(c => c.name == e.target.id);
-    if ( !choice ) return;
-    userChoice.innerHTML = `You choose <span>${choice.name.toUpperCase()}</span>`;
-    compChoice.innerHTML = '';
-    result.innerHTML = '';
-    result.classList = [];
-    myChoice = choice;
-    if (Object.entries(otherChoice).length !== 0) {
-      checkChoice(myChoice, otherChoice);
-      socket.emit('message', {
-        chosen: choice,
-      }, false);
-    } else {
-      waiting.innerHTML = "You are the first, let's wait for the other"
-      socket.emit('message', {
-        chosen: choice,
-      }, false);
-    }
-  });
+  const roomId = window.location.hash ? window.location.hash.substr(1) : generateRoomId();
+
+  // Show invite link
+  const link = window.location.href.split("#")[0] + '#' + roomId;
+  document.querySelector('#invite-link').innerHTML =
+    `<a href="${link}">${link}</a>`;
+
+  // Join the game!
+  socket.emit('join', { room: roomId });
 
 });

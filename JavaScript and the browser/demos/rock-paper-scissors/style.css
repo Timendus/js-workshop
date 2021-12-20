@@ -12,8 +12,12 @@ body{
         #ffcf1b,
         #ff8b1b
     );
+    font-family: 'Poppins',sans-serif;
+    font-weight: 400;
+    font-size: 15px;
 }
-main {
+main, #waiting-room {
+    display: none;
     width: 45%;
     min-width: 500px;
     background-color: #ffffff;
@@ -24,6 +28,12 @@ main {
     left: 50%;
     border-radius: 10px;
     box-shadow: 0 15px 25px rgba(0,0,0,0.15);
+}
+main.active, #waiting-room.active {
+    display: block;
+}
+h1, p {
+  margin: 1em 0 1em 0;
 }
 .scores{
     margin-bottom: 50px;
@@ -49,11 +59,6 @@ section button{
 .details, #waiting-message{
     margin-top: 30px;
     text-align: center;
-}
-.scores,.details, #waiting-message{
-    font-family: 'Poppins',sans-serif;
-    font-weight: 400;
-    font-size: 15px;
 }
 #result{
     width: 180px;

@@ -11,18 +11,25 @@
   </head>
 
   <body>
+    <div id="waiting-room" class="active">
+      <h1>You need two players to play this game!</h1>
+      <p>(Currently <span id="num-players"></span> player(s) present)</p>
+      <p>Use this link to invite them:</p>
+      <p id="invite-link"></p>
+    </div>
     <main>
         <div class="scores">
-            <p>Other :
-                <span id="computer_score">0</span>
-            </p>
             <p>
                 You :
                 <span id="user_score">0</span>
             </p>
+            <p>
+                Opponent :
+                <span id="opponent_score">0</span>
+            </p>
         </div>
         <section></section>
-        <div id="waiting-message"></div>
+        <div id="waiting-message">Make a choice!</div>
         <div class="details">
             <p id="user_choice"></p>
             <p id="comp_choice"></p>
